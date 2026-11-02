@@ -1,0 +1,13 @@
+import { useEffect, useState } from 'react'
+const koreaDate=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
+export default function TodayCalendar(){
+ const [today,setToday]=useState(koreaDate)
+ const [selected,setSelected]=useState(null)
+ useEffect(()=>{const timer=setInterval(()=>setToday(koreaDate()),30000);return()=>clearInterval(timer)},[])
+ const [todayYear,todayMonth,todayDay]=today.split('-').map(Number)
+ const {year,month}=selected??{year:todayYear,month:todayMonth}
+ const offset=new Date(Date.UTC(year,month-1,1)).getUTCDay(), days=new Date(Date.UTC(year,month,0)).getUTCDate()
+ const weekday=['일','월','화','수','목','금','토'][new Date(Date.UTC(todayYear,todayMonth-1,todayDay)).getUTCDay()]
+ function move(delta){const next=new Date(Date.UTC(year,month-1+delta,1));setSelected({year:next.getUTCFullYear(),month:next.getUTCMonth()+1})}
+ return <aside className="today-calendar" aria-label="오늘 날짜 달력"><div className="calendar-today-heading"><span>오늘의 날짜</span><time dateTime={today}>{todayYear}.{String(todayMonth).padStart(2,'0')}.{String(todayDay).padStart(2,'0')} ({weekday})</time></div><div className="calendar-heading"><button type="button" className="calendar-control" onClick={()=>move(-1)} aria-label="이전 달">‹</button><div className="calendar-month-picker"><span>{year}년</span><select aria-label="달력 월 선택" value={month} onChange={e=>setSelected({year,month:Number(e.target.value)})}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{i+1}월</option>)}</select></div><button type="button" className="calendar-control" onClick={()=>move(1)} aria-label="다음 달">›</button><button type="button" className="calendar-reset" onClick={()=>setSelected(null)}>오늘</button></div><div role="grid" aria-label={`${year}년 ${month}월 달력`}><div role="row" className="calendar-row calendar-weekdays">{['일','월','화','수','목','금','토'].map(label=><span role="columnheader" key={label}>{label}</span>)}</div>{Array.from({length:Math.ceil((offset+days)/7)},(_,week)=><div role="row" className="calendar-row" key={week}>{Array.from({length:7},(_,col)=>{const date=week*7+col-offset+1,isToday=year===todayYear&&month===todayMonth&&date===todayDay;return <span role="gridcell" key={col} className={isToday?'calendar-today':''} aria-current={isToday?'date':undefined}>{date>0&&date<=days?date:''}</span>})}</div>)}</div><span className="calendar-caption">한국시간 기준 · 오늘 날짜 강조</span></aside>
+}
