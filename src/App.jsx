@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import axios from 'axios'
+import { api, publicReadOnly } from './api.js'
+import ServerAccess from './components/ServerAccess.jsx'
 import TodayCalendar from './components/TodayCalendar.jsx'
 import WeatherCard from './components/WeatherCard.jsx'
 import MapCard from './components/MapCard.jsx'
@@ -8,10 +9,6 @@ import FoodCard from './components/FoodCard.jsx'
 import { CAMPUS_REGIONS, readRegion, rememberRegion } from './regions.js'
 import { definitions, validate, display } from './academic.js'
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 15000,
-})
 
 function Icon({ type = 'students', className = '' }) {
  const paths = { students: <><circle cx="9" cy="8" r="3"/><path d="M3 20v-3a6 6 0 0 1 12 0v3M17 5a3 3 0 0 1 0 6M21 20v-3a6 6 0 0 0-4-5"/></>, enrolled: <path d="m3 17 6-6 4 4 7-10m-6 0h6v6"/>, notEnrolled: <><circle cx="10" cy="8" r="3"/><path d="M4 20v-3a6 6 0 0 1 12 0v3m3-15 4 4m0-4-4 4"/></>, subjects: <><path d="M12 5C9 3 5 3 2 4v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-3-1-7-1-10 1Zm0 0v15"/></>, cap: <><path d="m2 9 10-5 10 5-10 5L2 9Zm4 2v6c4 3 8 3 12 0v-6m4-2v8"/></> }
@@ -40,13 +37,15 @@ export default function App() {
  }, [version])
 
  const cards = [{ key: 'students', title: '전체 학생', description: '등록된 학생 수', color: 'blue' }, { key: 'enrolled', title: '수강 학생', description: '한 과목 이상 수강 중', color: 'green' }, { key: 'notEnrolled', title: '미수강 학생', description: '수강 내역이 없는 학생', color: 'red' }, { key: 'subjects', title: '전체 과목', description: '개설된 과목 수', color: 'purple' }]
- function openCreate(kind) { setView(kind); setForm({ kind, values: {}, edit: false }); setNotice('') }
+ function openCreate(kind) { if(publicReadOnly){setNotice('공개 사이트는 조회 전용입니다. 등록·수정·삭제는 내부 시스템을 이용하세요.');return}setView(kind); setForm({ kind, values: {}, edit: false }); setNotice('') }
  const activeView = form?.kind === 'students' && !form.edit ? 'add' : view
 
  return <div className="app-shell">
   <header className="site-header"><div className="header-inner"><div className="brand"><span className="brand-mark"><Icon type="cap"/></span><div><h1>학사관리 시스템</h1><p>학생과 수업을 한곳에서 편리하게 관리하세요</p></div></div><div className="header-utilities"><span className="header-count"><Icon type="students"/><span>등록 학생 <strong>{stats?.students ?? '—'}</strong>명</span></span><TodayCalendar/></div></div></header>
   <main className="container academic-container"><nav className="nav nav-pills tabs" aria-label="주 메뉴">{[['dashboard','대시보드'],['students','학생 관리'],['add','학생 등록'],['subjects','과목 관리'],['enrolments','수강·성적 관리']].map(([id,label]) => <button key={id} className={'nav-link' + (id === activeView ? ' active' : '')} aria-current={id === activeView ? 'page' : undefined} onClick={() => id === 'add' ? openCreate('students') : navigate(id)}><Icon type={id === 'subjects' ? 'subjects' : id === 'students' ? 'students' : id === 'add' ? 'enrolled' : 'cap'}/><span>{label}</span></button>)}</nav>
    <section className={'welcome' + (view === 'dashboard' ? ' welcome-with-image' : '')}><div className="welcome-copy"><div><span className="welcome-eyebrow"><Icon type="cap"/>{view === 'dashboard' ? '배움이 즐거워지는 공간' : '캠퍼스 학사관리'}</span><h2>{view === 'dashboard' ? <>함께 배우고,<br className="d-sm-none"/> 더 크게 성장해요</> : definitions[view].title}</h2><p>{view === 'dashboard' ? '학생과 수업을 연결하는 우리들의 캠퍼스. 오늘의 학사 현황을 편하게 살펴보세요.' : definitions[view].description}</p>{view === 'dashboard' && <div className="hero-actions"><button className="btn btn-primary" onClick={() => navigate('students')}><Icon type="students"/>학생 둘러보기<span aria-hidden="true">→</span></button><button className="btn hero-secondary" onClick={() => openCreate('students')}>학생 등록하기</button></div>}</div></div>{view === 'dashboard' && <img className="welcome-illustration" src={`${import.meta.env.BASE_URL}images/academic-friends.png`} alt="책과 노트북으로 함께 공부하는 학생들" width="1536" height="1024" decoding="async" fetchPriority="high"/>}</section>
+   <ServerAccess onChange={()=>setVersion(v=>v+1)}/>
+   {publicReadOnly && <p className="alert alert-info" role="status">교육장 공개 조회 서비스 · 등록·수정·삭제는 허용하지 않습니다.</p>}
    {notice && <div className="alert alert-success notice" role="status">{notice}</div>}
    {dashboardError && <div className="alert alert-danger error" role="alert">{dashboardError} <button className="btn btn-outline-danger btn-sm" onClick={() => setVersion(v => v + 1)}>다시 연결</button></div>}
    {view === 'dashboard' ? <>

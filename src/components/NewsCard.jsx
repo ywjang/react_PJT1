@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { newsFeedUrl } from '../api.js'
 import { NEWS_CACHE_MS, NEWS_HOME, parseNewsFeed, normalizeHeadlines, validNewsCache, headlineTime } from '../news.js'
 function cachedNews() { try { const value=JSON.parse(sessionStorage.getItem('campus-news'));return validNewsCache(value)?value:null } catch {return null} }
 export default function NewsCard() {
@@ -8,7 +9,7 @@ export default function NewsCard() {
   const cached=cachedNews()
   if(revision===0&&cached){const timer=setTimeout(()=>{setState(s=>({...s,phase:'loading',error:''}));setRevision(v=>v+1)},Math.max(1000,NEWS_CACHE_MS-(Date.now()-cached.fetchedAt)));return ()=>clearTimeout(timer)}
   let active=true,timedOut=false;const controller=new AbortController();const timeout=setTimeout(()=>{timedOut=true;controller.abort()},15000)
-  fetch('/news-feed',{signal:controller.signal,cache:'no-store',headers:{Accept:'application/rss+xml, application/xml'}})
+  fetch(newsFeedUrl,{signal:controller.signal,cache:'no-store',headers:{Accept:'application/rss+xml, application/xml'}})
    .then(r=>{if(!r.ok)throw new Error('뉴스를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.');return r.text()})
    .then(xml=>{const fetchedAt=Date.now(),items=parseNewsFeed(xml,fetchedAt);if(!active)return;try{sessionStorage.setItem('campus-news',JSON.stringify({items,fetchedAt}))}catch{/* Optional cache. */}setState({phase:'ready',items,fetchedAt,error:''})})
    .catch(e=>{if(active)setState(s=>({...s,phase:'error',items:normalizeHeadlines(s.items),error:timedOut?'뉴스 조회 시간이 초과되었습니다. 다시 시도해 주세요.':e instanceof TypeError?'뉴스 연결을 확인해 주세요.':e.message}))})

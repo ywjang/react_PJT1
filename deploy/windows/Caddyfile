@@ -1,0 +1,51 @@
+{
+    admin off
+    email {$ACME_EMAIL}
+}
+
+{$API_DOMAIN} {
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+        Cache-Control no-store
+        -Server
+        +Vary Origin
+    }
+
+    @github header Origin https://ywjang.github.io
+    @foreign {
+        header Origin *
+        not header Origin https://ywjang.github.io
+    }
+    @preflight method OPTIONS
+    @write not method GET HEAD OPTIONS
+
+    route {
+        # Exact browser origin. This header must also be present on 401/403.
+        header @github {
+            Access-Control-Allow-Origin https://ywjang.github.io
+            Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+            Access-Control-Allow-Headers "Authorization, Content-Type, Accept"
+            Access-Control-Max-Age 600
+        }
+        respond @foreign "Origin not allowed" 403
+        respond @preflight "" 204
+        respond @write "Public API is read-only" 403
+
+        handle /api/* {
+            basic_auth {
+                {$WEB_VIEWER_USER} {$WEB_VIEWER_HASH}
+            }
+            reverse_proxy 127.0.0.1:8091 {
+                # Web password does not reach Spring or Oracle.
+                header_up -Authorization
+            }
+        }
+        handle /news-feed {
+            reverse_proxy 127.0.0.1:8091
+        }
+        handle {
+            respond "Not found" 404
+        }
+    }
+}
