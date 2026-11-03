@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { api, publicReadOnly } from './api.js'
 import ServerAccess from './components/ServerAccess.jsx'
 import TodayCalendar from './components/TodayCalendar.jsx'
+import CurrentClock from './components/CurrentClock.jsx'
 import WeatherCard from './components/WeatherCard.jsx'
 import MapCard from './components/MapCard.jsx'
 import NewsCard from './components/NewsCard.jsx'
@@ -41,7 +42,7 @@ export default function App() {
  const activeView = form?.kind === 'students' && !form.edit ? 'add' : view
 
  return <div className="app-shell">
-  <header className="site-header"><div className="header-inner"><div className="brand"><span className="brand-mark"><Icon type="cap"/></span><div><h1>학사관리 시스템</h1><p>학생과 수업을 한곳에서 편리하게 관리하세요</p></div></div><div className="header-utilities"><span className="header-count"><Icon type="students"/><span>등록 학생 <strong>{stats?.students ?? '—'}</strong>명</span></span><TodayCalendar/></div></div></header>
+  <header className="site-header"><div className="header-inner"><div className="brand"><span className="brand-mark"><Icon type="cap"/></span><div><h1>학사관리 시스템</h1><p>학생과 수업을 한곳에서 편리하게 관리하세요</p></div></div><CurrentClock/><div className="header-utilities"><span className="header-count"><Icon type="students"/><span>등록 학생 <strong>{stats?.students ?? '—'}</strong>명</span></span><TodayCalendar/></div></div></header>
   <main className="container academic-container"><nav className="nav nav-pills tabs" aria-label="주 메뉴">{[['dashboard','대시보드'],['students','학생 관리'],['add','학생 등록'],['subjects','과목 관리'],['enrolments','수강·성적 관리']].map(([id,label]) => <button key={id} className={'nav-link' + (id === activeView ? ' active' : '')} aria-current={id === activeView ? 'page' : undefined} onClick={() => id === 'add' ? openCreate('students') : navigate(id)}><Icon type={id === 'subjects' ? 'subjects' : id === 'students' ? 'students' : id === 'add' ? 'enrolled' : 'cap'}/><span>{label}</span></button>)}</nav>
    <section className={'welcome' + (view === 'dashboard' ? ' welcome-with-image' : '')}><div className="welcome-copy"><div><span className="welcome-eyebrow"><Icon type="cap"/>{view === 'dashboard' ? '배움이 즐거워지는 공간' : '캠퍼스 학사관리'}</span><h2>{view === 'dashboard' ? <>함께 배우고,<br className="d-sm-none"/> 더 크게 성장해요</> : definitions[view].title}</h2><p>{view === 'dashboard' ? '학생과 수업을 연결하는 우리들의 캠퍼스. 오늘의 학사 현황을 편하게 살펴보세요.' : definitions[view].description}</p>{view === 'dashboard' && <div className="hero-actions"><button className="btn btn-primary" onClick={() => navigate('students')}><Icon type="students"/>학생 둘러보기<span aria-hidden="true">→</span></button><button className="btn hero-secondary" onClick={() => openCreate('students')}>학생 등록하기</button></div>}</div></div>{view === 'dashboard' && <img className="welcome-illustration" src={`${import.meta.env.BASE_URL}images/academic-friends.png`} alt="책과 노트북으로 함께 공부하는 학생들" width="1536" height="1024" decoding="async" fetchPriority="high"/>}</section>
    <ServerAccess onChange={()=>setVersion(v=>v+1)}/>
@@ -131,3 +132,4 @@ function Modal({ title, onClose, children }) {
  function keys(e){if(e.key==='Escape'){onClose();return}if(e.key==='Tab'){const nodes=ref.current.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled)');const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}}
  return <div className="modal d-block academic-modal"><div className="modal-dialog modal-dialog-centered modal-dialog-scrollable"><section ref={ref} tabIndex={-1} className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title" onKeyDown={keys}><div className="modal-header"><h3 className="modal-title" id="modal-title">{title}</h3><button type="button" className="btn-close" aria-label="닫기" onClick={onClose}/></div><div className="modal-body">{children}</div></section></div></div>
 }
+

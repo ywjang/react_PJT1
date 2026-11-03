@@ -364,3 +364,32 @@ footer { background: #ffffff82; border-top-color: #e7edf0; color: #94a1ad; }
 .calendar-control:hover,.calendar-reset:hover { background:#e7f0fe; border-color:#7d9fc8; }
 .calendar-control:focus-visible,.calendar-reset:focus-visible,.calendar-month-picker select:focus-visible { outline:2px solid #2457a4; outline-offset:2px; }
 @media(max-width:767.98px){.brand h1{font-size:29px}.brand p{font-size:11px}.today-calendar{width:250px}.header-utilities{align-items:flex-start}.brand-mark{width:45px;height:45px}}
+
+/* 제목과 달력 사이 중앙의 실시간 한국 시계 */
+.header-inner { display:grid; grid-template-columns:minmax(0,1fr) 350px minmax(0,1fr); align-items:center; gap:24px; }
+.header-inner .brand { min-width:0; }
+.header-inner .header-utilities { width:auto; margin-left:0; justify-self:end; flex-direction:column; align-items:flex-end; gap:10px; }
+.current-clock { justify-self:center; width:350px; max-width:100%; padding:18px 14px; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:16px; border:1px solid #dce8f6; border-radius:22px; background:linear-gradient(145deg,#f4f8ff,#fff); box-shadow:0 8px 26px #3567c10b; color:#285b9d; text-align:center; }
+.current-clock-digital { display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0; }
+.analog-clock { position:relative; width:132px; height:132px; flex-shrink:0; filter:drop-shadow(0 4px 6px #345b8a16); }
+.analog-clock>img,.analog-clock-hands { display:block; width:100%; height:100%; }
+.analog-clock-hands { position:absolute; inset:0; }
+.current-clock-label { font-size:11px; font-weight:700; letter-spacing:.4px; color:#6683a4; }
+.current-clock-label>span { margin-right:4px; font-size:17px; }
+.current-clock-time { font-size:30px; line-height:1.3; font-weight:800; letter-spacing:1px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.current-clock-date { font-size:12px; font-weight:600; color:#526c89; }
+.current-clock small { font-size:10px; color:#7c8fa4; }
+@media(max-width:1099.98px) {
+  .header-inner { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .header-inner .brand { grid-column:1/-1; }
+  .current-clock { justify-self:start; }
+  .header-inner .header-utilities { grid-column:2; grid-row:2; }
+}
+@media(max-width:575.98px) {
+  .header-inner { grid-template-columns:minmax(0,1fr); }
+  .header-inner .brand { justify-content:center; }
+  .current-clock { width:min(100%,350px); justify-self:center; padding:15px 10px; gap:12px; }
+  .analog-clock { width:110px; height:110px; }
+  .header-inner .header-utilities { grid-column:1; grid-row:auto; justify-self:stretch; width:100%; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:center; }
+  .header-inner .today-calendar { margin-left:0; width:min(100%,280px); }
+}

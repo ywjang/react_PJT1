@@ -40,4 +40,30 @@ class AcademicApiTest {
  assertEquals(200,first.statusCode());assertTrue(first.body().contains("20269998"));assertFalse(first.body().contains("20269999"));assertTrue(second.body().contains("20269999"));
  assertTrue(call("GET","/api/dashboard",null).body().contains("notEnrolled"));
  }
+ @Test void githubPagesCorsHeadersAndPreflight()throws Exception {
+  String origin="https://ywjang.github.io";
+  for(String path:new String[]{"/api/system","/news-feed"}){
+   // Preflight must be allowed without touching the RSS upstream or database.
+   var options=client.send(HttpRequest.newBuilder(URI.create("http://localhost:"+port+path))
+       .method("OPTIONS",HttpRequest.BodyPublishers.noBody())
+       .header("Origin",origin)
+       .header("Access-Control-Request-Method","GET")
+       .header("Access-Control-Request-Headers","authorization,content-type")
+       .build(),HttpResponse.BodyHandlers.ofString());
+   assertEquals(200,options.statusCode(),path);
+   assertEquals(origin,options.headers().firstValue("Access-Control-Allow-Origin").orElse(null),path);
+  }
+  var get=client.send(HttpRequest.newBuilder(URI.create("http://localhost:"+port+"/api/system"))
+      .header("Origin",origin).GET().build(),HttpResponse.BodyHandlers.ofString());
+  assertEquals(200,get.statusCode());
+  assertEquals(origin,get.headers().firstValue("Access-Control-Allow-Origin").orElse(null));
+
+  var blocked=client.send(HttpRequest.newBuilder(URI.create("http://localhost:"+port+"/api/system"))
+      .method("OPTIONS",HttpRequest.BodyPublishers.noBody())
+      .header("Origin","https://example.invalid")
+      .header("Access-Control-Request-Method","GET")
+      .build(),HttpResponse.BodyHandlers.ofString());
+  assertEquals(403,blocked.statusCode());
+ }
+
 }

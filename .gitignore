@@ -31,3 +31,27 @@ backend/data/
 !.env.example
 *.log
 .local-runtime.json
+
+# 설치 패키지와 빌드 결과
+node_modules/
+dist/
+backend/target/
+
+# 로컬 실행 정보와 로그
+.local-runtime.json
+*.log
+
+# 백업과 검증 기록
+backend.zip
+backend/backups/
+deploy/windows/evidence/
+
+# 환경변수와 서버 인증 정보
+.env*
+!.env.example
+oracle.xml
+*.hash
+
+# 로컬에서 내려받은 서버 설정
+Caddyfile.download
+Caddyfile.local
